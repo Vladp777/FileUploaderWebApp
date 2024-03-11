@@ -1,7 +1,64 @@
 ﻿@page "/"
+@using FileUploader.Models
+@using FileUploader.Services
+@using Syncfusion.Blazor.Inputs
+@using System.ComponentModel.DataAnnotations
+@rendermode InteractiveServer
+@inject IBlobService blobService
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Upload Form</h1>
 
-Welcome to your new app.
+<EditForm Model="uploadModel" OnValidSubmit="SubmitForm">
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label for="email">Email</label>
+        <SfTextBox @bind-Value="@uploadModel.Email"></SfTextBox>
+        <ValidationMessage For="() => uploadModel.Email" />
+    </div>
+    <p></p>
+    <div class="form-group">
+        <SfUploader AllowMultiple=false AutoUpload="true" AllowedExtensions=".docx" ID="UploadFiles">
+            <UploaderEvents ValueChange="LoadFiles" OnRemove="OnRemove"></UploaderEvents>
+        </SfUploader>
+        <ValidationMessage For="() => uploadModel.File" />
+    </div>
+    <button class="btn btn-primary mt-3" type="submit">Send to Blob</button>
+
+    @if (_fileUploaded)
+    {
+        <div class="alert alert-success mt-3" role="alert">
+            File uploaded successfully!
+        </div>
+    }
+</EditForm>
+
+@code {
+
+    private IBrowserFile? _file;
+    private bool _fileUploaded = false;
+    private UploadModel uploadModel = new();
+
+    private void LoadFiles(UploadChangeEventArgs e)
+    {
+        uploadModel.File = e.Files.First();
+
+        _fileUploaded = false;
+    }
+
+
+    private async Task SubmitForm()
+    {
+        await blobService.UploadFileAsync(uploadModel.File.File, uploadModel.Email);
+        _fileUploaded = true;
+
+        uploadModel = new();
+    }
+
+    public void OnRemove()
+    {
+        uploadModel.File = null;
+    }
+}
