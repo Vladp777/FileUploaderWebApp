@@ -1,10 +1,15 @@
+using Azure.Storage.Blobs;
 using FileUploader.Components;
+using FileUploader.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
+builder.Services.AddSingleton<IBlobService, BlobService>();
 
 var app = builder.Build();
 
