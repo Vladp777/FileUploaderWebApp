@@ -1,8 +1,6 @@
 ﻿@page "/"
 @using FileUploader.Models
 @using FileUploader.Services
-@using Syncfusion.Blazor.Inputs
-@using System.ComponentModel.DataAnnotations
 @rendermode InteractiveServer
 @inject IBlobService blobService
 
@@ -10,20 +8,31 @@
 
 <h1>Upload Form</h1>
 
-<EditForm Model="uploadModel" OnValidSubmit="SubmitForm">
+<EditForm Model="uploadModel" OnValidSubmit="OnUploadSubmit">
     <DataAnnotationsValidator />
 
     <div class="form-group">
         <label for="email">Email</label>
-        <SfTextBox @bind-Value="@uploadModel.Email"></SfTextBox>
+        <br/>
+        <InputText @bind-Value="@uploadModel.Email" placeholder="Email"></InputText>
         <ValidationMessage For="() => uploadModel.Email" />
     </div>
     <p></p>
     <div class="form-group">
-        <SfUploader AllowMultiple=false AutoUpload="true" AllowedExtensions=".docx" ID="UploadFiles">
-            <UploaderEvents ValueChange="LoadFiles" OnRemove="OnRemove"></UploaderEvents>
-        </SfUploader>
-        <ValidationMessage For="() => uploadModel.File" />
+        <label>
+            <InputFile class="form-control" disabled="@_fileLoading" accept=".docx" OnChange="@OnInputFileChange" single />
+            @if (!_isValidFileType)
+            {
+                <div class="text-danger">
+                    Please select only .docx files
+                </div>
+            }
+        </label>
+        @if (_fileLoading)
+        {
+            <i class="fa fa-refresh"></i> <span>Loading...</span>
+        }
+        <ValidationMessage For="() => uploadModel.Files" />
     </div>
     <button class="btn btn-primary mt-3" type="submit">Send to Blob</button>
 
@@ -33,32 +42,73 @@
             File uploaded successfully!
         </div>
     }
+    @if (_isError)
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            Something went wrong. Try again.
+        </div>
+    }
 </EditForm>
 
-@code {
 
-    private IBrowserFile? _file;
+@code {
+    private bool _fileLoading;
+    private bool _isValidFileType = true;
+    private bool _isError;
     private bool _fileUploaded = false;
     private UploadModel uploadModel = new();
 
-    private void LoadFiles(UploadChangeEventArgs e)
+    private void OnInputFileChange(InputFileChangeEventArgs e)
     {
-        uploadModel.File = e.Files.First();
-
         _fileUploaded = false;
+
+        uploadModel.Files = e.GetMultipleFiles();
+
+        foreach (var file in uploadModel.Files)
+        {
+            if (!file.ContentType.Equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document", StringComparison.OrdinalIgnoreCase))
+            {
+                _isValidFileType = false;
+
+                uploadModel.Files = null;
+            }
+            else
+            {
+                _isValidFileType = true;
+            }
+        }
+        this.StateHasChanged();
     }
-
-
-    private async Task SubmitForm()
+    private async Task OnUploadSubmit()
     {
-        await blobService.UploadFileAsync(uploadModel.File.File, uploadModel.Email);
-        _fileUploaded = true;
+        _fileLoading = true;
+        if(uploadModel.Files == null)
+        {
+            _isError = true;
+         
+            return;
+        }
+        foreach (var file in uploadModel.Files)
+        {
+            try
+            {
+                await blobService.UploadFileAsync(file, uploadModel.Email);
 
-        uploadModel = new();
+                _fileUploaded = true;
+
+                uploadModel = new();
+
+            }
+            catch (Exception ex)
+            {
+                _isError = true;
+
+            }
+        }
+
+        _fileLoading = false;
+        this.StateHasChanged();
     }
 
-    public void OnRemove()
-    {
-        uploadModel.File = null;
-    }
+    
 }
