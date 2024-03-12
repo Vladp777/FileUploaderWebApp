@@ -25,22 +25,5 @@ namespace FileUploader.Services
             var metadata = new Dictionary<string, string> { { "Email", email } };
             await blobClient.SetMetadataAsync(metadata);
         }
-        public async Task UploadFileAsync(IBrowserFile file, Stream stream, string email)
-        {
-            var containerClient = _blobServiceClient.GetBlobContainerClient("fileuploader");
-            var guid = Guid.NewGuid();
-            var blobClient = containerClient.GetBlobClient(email + "-" + file.Name);
-            await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
-        }
-
-        public async Task<string> UploadFileAsync(string fileName, Stream stream, string type)
-        {
-            var containerClient = _blobServiceClient.GetBlobContainerClient("fileuploader");
-            var guid = Guid.NewGuid();
-            var blobClient = containerClient.GetBlobClient(fileName);
-            await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = type });
-            var urlString = blobClient.Uri.ToString();
-            return urlString;
-        }
     }
 }

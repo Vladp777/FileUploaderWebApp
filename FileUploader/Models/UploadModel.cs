@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
-using Syncfusion.Blazor.Inputs;
 using System.ComponentModel.DataAnnotations;
 
 namespace FileUploader.Models;

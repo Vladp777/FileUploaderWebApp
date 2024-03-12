@@ -1,12 +1,10 @@
 using Azure.Storage.Blobs;
 using FileUploader.Components;
 using FileUploader.Services;
-using Syncfusion.Blazor;
 using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Ngo9BigBOggjHTQxAR8/V1NAaF1cVGhNYVJ2WmFZfVpgdVRMYFRbRn5PMyBoS35RckVgWH5fcXVRQ2ZZU0F0");
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -15,7 +13,6 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage")));
 builder.Services.AddSingleton<IBlobService, BlobService>();
 
-builder.Services.AddSyncfusionBlazor();
 builder.Services.AddAzureClients(clientBuilder =>
 {
     clientBuilder.AddBlobServiceClient(builder.Configuration["ConnectionStrings:AzureBlobStorage:blob"]!, preferMsi: true);
