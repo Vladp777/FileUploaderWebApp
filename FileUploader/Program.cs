@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using FileUploader.Components;
 using FileUploader.Services;
 using Syncfusion.Blazor;
+using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,11 @@ builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.G
 builder.Services.AddSingleton<IBlobService, BlobService>();
 
 builder.Services.AddSyncfusionBlazor();
+builder.Services.AddAzureClients(clientBuilder =>
+{
+    clientBuilder.AddBlobServiceClient(builder.Configuration["ConnectionStrings:AzureBlobStorage:blob"]!, preferMsi: true);
+    clientBuilder.AddQueueServiceClient(builder.Configuration["ConnectionStrings:AzureBlobStorage:queue"]!, preferMsi: true);
+});
 
 
 var app = builder.Build();

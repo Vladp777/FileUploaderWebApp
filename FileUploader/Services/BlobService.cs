@@ -21,5 +21,12 @@ namespace FileUploader.Services
             var f = file.OpenReadStream();
             var result = await blobClient.UploadAsync(f, new BlobHttpHeaders { ContentType = file.ContentType });
         }
+        public async Task UploadFileAsync(IBrowserFile file, Stream stream, string email)
+        {
+            var containerClient = _blobServiceClient.GetBlobContainerClient("fileuploader");
+            var guid = Guid.NewGuid();
+            var blobClient = containerClient.GetBlobClient(email + "-" + file.Name);
+            var result = await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = file.ContentType });
+        }
     }
 }

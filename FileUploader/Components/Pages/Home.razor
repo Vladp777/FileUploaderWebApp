@@ -41,17 +41,35 @@
     private bool _fileUploaded = false;
     private UploadModel uploadModel = new();
 
-    private void LoadFiles(UploadChangeEventArgs e)
+    private async Task LoadFiles(UploadChangeEventArgs e)
     {
+        try
+        {
+            foreach (var file in e.Files)
+            {
+                uploadModel.File = file;
+                //FileStream filestream = new FileStream(path, FileMode.Create, FileAccess.Write);
+                //var stream = file.File.OpenReadStream(long.MaxValue);
+
+                
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
         uploadModel.File = e.Files.First();
 
         _fileUploaded = false;
     }
-
-
     private async Task SubmitForm()
     {
-        await blobService.UploadFileAsync(uploadModel.File.File, uploadModel.Email);
+        //await blobService.UploadFileAsync(uploadModel.File.File, uploadModel.Email);
+        var stream = uploadModel.File.File.OpenReadStream(long.MaxValue);
+
+        await blobService.UploadFileAsync(uploadModel.File.File, stream, uploadModel.Email);
+
+
         _fileUploaded = true;
 
         uploadModel = new();
